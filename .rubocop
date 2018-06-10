@@ -1,0 +1,9 @@
+Metrics/LineLength:
+  Max: 140
+
+Metrics/BlockLength:
+  Max: 200
+
+Style/BlockDelimiters:
+  Exclude:
+    - '*'
