@@ -11,10 +11,10 @@
 #   BuildStorageFS: BuildStaticStack
 # :outputs:
 
-def checkonoff(stack, details)
+def check_on_or_off(stack, details)
   # watch for weird yaml truthiness
   # yaml makes on = true for ruby so use quotes
-  if details[:condition_on_or_off] == 'on' || details[:condition_on_or_off] == 'off'
+  unless details[:condition_on_or_off] == 'on' || details[:condition_on_or_off] == 'off'
     return false
   end
 
@@ -43,7 +43,7 @@ def stack_builder(stack, details, stack_parameters, s3_url)
 
   # if :condition_onoroff then add a Parameter to receive choice and make default the value provided (on|off)
   # if no onoroff then skip
-  condition_on_or_off = checkonoff(stack, details)
+  condition_on_or_off = check_on_or_off(stack, details)
 
   # if :input_params_from_stack_outputs then build inputs that are based on the outputs from another stack
   if details[:input_params_from_stack_outputs]
