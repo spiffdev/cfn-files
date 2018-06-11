@@ -21,7 +21,7 @@ def check_on_or_off(stack, details)
   Parameter("#{stack}OnOrOff") do
     Type 'String'
     Default details[:condition_on_or_off]
-    AllowedValues %[on off]
+    AllowedValues %w[on off]
     Description "Choose on if you want #{stack} Stack to be deployed"
   end
 
