@@ -31,6 +31,8 @@ def check_on_or_off(stack, details)
 end
 
 def stack_builder(stack, details, stack_parameters, s3_url)
+  stack_param_group = { Label: { default: stack }, Parameters: []}
+
   # clone so we don't stuff up params for other stacks
   cloned_stack_parameters = stack_parameters.clone
 
@@ -44,6 +46,8 @@ def stack_builder(stack, details, stack_parameters, s3_url)
   # if :condition_onoroff then add a Parameter to receive choice and make default the value provided (on|off)
   # if no onoroff then skip
   condition_on_or_off = check_on_or_off(stack, details)
+
+  stack_param_group[:Parameters] << "#{stack}OnOrOff" if condition_on_or_off
 
   # if :input_params_from_stack_outputs then build inputs that are based on the outputs from another stack
   if details[:input_params_from_stack_outputs]
@@ -60,6 +64,7 @@ def stack_builder(stack, details, stack_parameters, s3_url)
         Type 'String'
         Default default
       end
+      stack_param_group[:Parameters] << master_param
       cloned_stack_parameters[param] = Ref(master_param)
     end
   end
@@ -84,5 +89,13 @@ def stack_builder(stack, details, stack_parameters, s3_url)
     Condition("#{stack}OnOrOff") if condition_on_or_off
     Property('TemplateURL', "#{s3_url}/#{file_name}.json")
     Property('Parameters', cloned_stack_parameters)
+  end
+
+  if @Metadata
+    if @Metadata["AWS::CloudFormation::Interface"]
+      if @Metadata["AWS::CloudFormation::Interface"]:ParameterGroups]
+        @Metadata["AWS::CloudFormation::Interface"][:ParameterGroups] << stack_param_group
+      end
+    end
   end
 end
