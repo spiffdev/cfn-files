@@ -93,7 +93,7 @@ def stack_builder(stack, details, stack_parameters, s3_url)
 
   if @Metadata
     if @Metadata["AWS::CloudFormation::Interface"]
-      if @Metadata["AWS::CloudFormation::Interface"]:ParameterGroups]
+      if @Metadata["AWS::CloudFormation::Interface"][:ParameterGroups]
         @Metadata["AWS::CloudFormation::Interface"][:ParameterGroups] << stack_param_group
       end
     end
