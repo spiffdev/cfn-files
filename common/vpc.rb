@@ -28,97 +28,97 @@ CloudFormation {
 
   %w(CIDRPrefix SubnetMask).each { |parameter| Parameter(parameter) { Type 'String' } }
 
-  Resource('VPC') do
+  Resource('VPC') {
     Type 'AWS::EC2::VPC'
     Property('CidrBlock', FnJoin('', [Ref('CIDRPrefix'), '.0.0/16']))
     #Property('InstanceTenancy', Ref('Tenancy'))
     Property('EnableDnsSupport', true)
     Property('EnableDnsHostnames', true)
     Property('Tags', default_tags)
-  end
+  }
 
   availability_zones.each_with_index do |az, az_number|
-    Resource("SubnetPublic#{az}") do
+    Resource("SubnetPublic#{az}") {
       Type 'AWS::EC2::Subnet'
       Property('VpcId', Ref('VPC'))
       Property('CidrBlock', FnSub("${CIDRPrefix}.#{az_number}.0/${SubnetMask}"))
       Property('AvailabilityZone', FnSelect(az_number, FnGetAZs(Ref( "AWS::Region"))))
       Property('Tags', add_new_name_to_tags(default_tags, FnSub("${MasterStackName}-public#{az}")))
-    end
+    }
   end
 
-  Resource('IGW') do
+  Resource('IGW') {
     Type 'AWS::EC2::InternetGateway'
     Property('Tags',add_new_name_to_tags(default_tags, FnSub('${MasterStackName}-igw')))
-  end
+  }
 
-  Resource('NACLPublic') do
+  Resource('NACLPublic') {
     Type 'AWS::EC2::NetworkAcl'
     Property('VpcId', Ref('VPC'))
     Property('Tags',add_new_name_to_tags(default_tags, FnSub('${MasterStackName}-aclpublic')))
-  end
+  }
 
-  Resource('RouteTablePublic') do
+  Resource('RouteTablePublic') {
     Type 'AWS::EC2::RouteTable'
     Property('VpcId', Ref('VPC'))
     Property('Tags',add_new_name_to_tags(default_tags, FnSub('${MasterStackName}-public')))
-  end
+  }
 
   availability_zones.each do |az|
-    Resource("RouteTablePrivate#{az}") do
+    Resource("RouteTablePrivate#{az}") {
       Type 'AWS::EC2::RouteTable'
       Property('VpcId', Ref('VPC'))
       Property('Tags',add_new_name_to_tags(default_tags, FnSub("${MasterStackName}-private#{az}")))
-    end
+    }
   end
 
   availability_zones.each do |az|
-    Resource("EIPNat#{az}") do
+    Resource("EIPNat#{az}") {
       DependsOn ['GWAttachmentIGW']
       Type 'AWS::EC2::EIP'
       Property('Domain', 'vpc')
-    end
+    }
   end
 
   availability_zones.each do |az|
-    Resource("NatGateway#{az}") do
+    Resource("NatGateway#{az}") {
       Type 'AWS::EC2::NatGateway'
       Property('AllocationId', FnGetAtt("EIPNat#{az}",'AllocationId'))
       Property('SubnetId', Ref("SubnetPublic#{az}"))
-    end
+    }
   end
 
-  Resource('GWAttachmentIGW') do
+  Resource('GWAttachmentIGW') {
     DependsOn ['IGW']
     Type 'AWS::EC2::VPCGatewayAttachment'
     Property('VpcId', Ref('VPC'))
     Property('InternetGatewayId', Ref('IGW'))
-  end
+  }
 
-  Resource('RouteIGW') do
+  Resource('RouteIGW') {
     Type 'AWS::EC2::Route'
     DependsOn ['GWAttachmentIGW']
     Property('RouteTableId', Ref('RouteTablePublic'))
     Property('DestinationCidrBlock', '0.0.0.0/0')
     Property('GatewayId',Ref('IGW'))
-  end
+  }
 
   availability_zones.each do |az|
-    Resource("RoutePrivateNatGateway#{az}") do
+    Resource("RoutePrivateNatGateway#{az}") {
       DependsOn ["NatGateway#{az}"]
       Type 'AWS::EC2::Route'
       Property('RouteTableId', Ref("RouteTablePrivate#{az}"))
       Property('DestinationCidrBlock', '0.0.0.0/0')
       Property('NatGatewayId', Ref("NatGateway#{az}"))
-    end
+    }
   end
 
   availability_zones.each do |az|
-    Resource("SubnetRouteTableAssociation#{az}") do
+    Resource("SubnetRouteTableAssociation#{az}") {
       Type 'AWS::EC2::SubnetRouteTableAssociation'
       Property('SubnetId', Ref("SubnetPublic#{az}"))
       Property('RouteTableId', Ref('RouteTablePublic'))
-    end
+    }
   end
 
   # can move this to use share lib logic "cidrator"
@@ -132,7 +132,7 @@ CloudFormation {
         acl[:CidrBlock]
       end
       
-    Resource(acl[:name]) do
+    Resource(acl[:name]) {
       Type 'AWS::EC2::NetworkAclEntry'
       Property('CidrBlock', cidr)
       Property('Egress', acl[:Egress]) if acl[:Egress]
@@ -144,7 +144,7 @@ CloudFormation {
         To: acl[:PortRangeFinish]
       })
       Property('NetworkAclId', Ref('NACLPublic'))
-    end
+    }
   end
 
   all_route_tables = [Ref('RouteTablePublic')]
@@ -153,14 +153,14 @@ CloudFormation {
   end
 
   availability_zones.each do |az|
-    Resource("SubnetNetworkAclAssociationPublic#{az}") do
+    Resource("SubnetNetworkAclAssociationPublic#{az}") {
       Type 'AWS::EC2::SubnetNetworkAclAssociation'
       Property('SubnetId', Ref("SubnetPublic#{az}"))
       Property('NetworkAclId', Ref('NACLPublic'))
-    end
+    }
   end
 
-  Resource('ProductionVpcFlowLogsServiceRole') do
+  Resource('ProductionVpcFlowLogsServiceRole') {
     Type 'AWS::IAM::Role'
     Property('AssumeRolePolicyDocument', {
       Version: '2012-10-17',
@@ -196,9 +196,9 @@ CloudFormation {
         }
       }
     ])
-  end
+  }
 
-  Resource('S3VPCEndpoint') do
+  Resource('S3VPCEndpoint') {
     Type 'AWS::EC2::VPCEndpoint'
     Property('PolicyDocument', {
       Version: '2012-10-17',
@@ -212,9 +212,9 @@ CloudFormation {
     Property('RouteTableIds', all_route_tables)
     Property('ServiceName', FnSub('com.amazonaws.${AWS::Region}.s3'))
     Property('VpcId',  Ref('VPC'))
-  end
+  }
 
-  Resource('DynamoVPCEndpoint') do
+  Resource('DynamoVPCEndpoint') {
     Type 'AWS::EC2::VPCEndpoint'
     Property('PolicyDocument', {
       Version:'2012-10-17',
