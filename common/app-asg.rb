@@ -41,7 +41,7 @@ CloudFormation do
 
   Parameter('AsgSchedules') {
     Type 'String'
-    AllowedValues ['on', 'off']
+    AllowedValues %w[on off]
     Default 'on'
   }
 
