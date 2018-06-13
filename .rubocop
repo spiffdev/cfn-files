@@ -4,6 +4,6 @@ Metrics/LineLength:
 Metrics/BlockLength:
   Max: 200
 
-Style/BlockDelimiters:
-  Exclude:
-    - '*'
+#Style/BlockDelimiters:
+#  Exclude:
+#    - '*'
