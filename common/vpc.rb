@@ -230,34 +230,34 @@ CloudFormation {
     Property('VpcId',  Ref('VPC'))
   }
 
-  Resource('ProductionVpcFlowLog') do
+  Resource('ProductionVpcFlowLog') {
     Type 'AWS::EC2::FlowLog'
     Property('DeliverLogsPermissionArn', FnGetAtt('ProductionVpcFlowLogsServiceRole','Arn'))
     Property('LogGroupName', FnJoin( '', [ Ref('MasterStackName'), '-VPC-FlowLog']))
     Property('ResourceId', Ref('VPC'))
     Property('ResourceType', 'VPC')
     Property('TrafficType', 'ALL')
-  end
+  }
 
-  Resource('FlowLogGroup') do
+  Resource('FlowLogGroup') {
     Type 'AWS::Logs::LogGroup'
     Property('RetentionInDays', '7')
-  end
+  }
 
-  Resource('ProductionVpcFlowLogStream') do
+  Resource('ProductionVpcFlowLogStream') {
     Type 'AWS::Logs::LogStream'
     Property('LogGroupName', Ref('FlowLogGroup'))
     #LogStreamName
-  end
+  }
 
-  Output('VPC') do
+  Output('VPC') {
     Value(Ref('VPC'))
-  end
+  }
 
   availability_zones.each do |az|
-    Output("SubnetPublic#{az}") do
+    Output("SubnetPublic#{az}") {
       Value(Ref("SubnetPublic#{az}"))
-    end
+    }
   end
 
   Output('RouteTablePublic') {
