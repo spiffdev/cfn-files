@@ -1,4 +1,4 @@
-def get_aws_tags(tags_map)
+def render_aws_tags(tags_map)
   tags = []
 
   tags_map.each do |tag|
