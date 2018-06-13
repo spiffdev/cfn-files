@@ -1,3 +1,5 @@
+require_relative ../lib/shared
+
 CloudFormation {
   version = external_parameters[:version]
   application_name = external_parameters[:application_name]
@@ -6,7 +8,8 @@ CloudFormation {
   application_name = external_parameters.fetch(:application_name)
   network_settings = external_parameters[:network_settings]
   default_parameters = external_parameters[:default_parameters]
-  default_tags_map = external_parameters[:default_tags]
+
+  default_tags =  render_aws_tags(external_parameters[:default_tags])
 
   AWSTemplateFormatVersion '2010-09-09'
   Description "#{project}/#{application_name} - VPC Stack - #{version}"

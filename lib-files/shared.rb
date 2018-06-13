@@ -1,7 +1,7 @@
-def default_tags
+def get_aws_tags(tags_map)
   tags = []
 
-  @default_tags_map.each do |tag|
+  tags_map.each do |tag|
     tags << { Key: tag[:key], Value: Ref(tag[:ref]) }
   end
   
