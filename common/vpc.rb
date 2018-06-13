@@ -1,4 +1,4 @@
-require_relative ../lib/shared
+require_relative '../lib/shared'
 
 CloudFormation {
   version = external_parameters[:version]
