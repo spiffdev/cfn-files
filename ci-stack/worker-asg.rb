@@ -76,7 +76,7 @@ CloudFormation {
       "start ecs\n",
       "yum update -y \n",
       "sleep 30\n",
-      "yum install -y git python-pip nfs-utils java-1.8.0-openjdk jq ruby24 nfs-utils awslogs chrony\n",
+      "yum install -y git python-pip nfs-utils java-1.8.0-openjdk jq ruby24 nfs-utils awslogs \n",
       "curl https://amazon-ssm-ap-southeast-2.s3.amazonaws.com/latest/linux_amd64/amazon-ssm-agent.rpm -o /tmp/amazon-ssm-agent.rpm\n",
       "python-pip install --upgrade awscli\n",
       "yum install -y /tmp/amazon-ssm-agent.rpm\n",
