@@ -71,7 +71,7 @@ CloudFormation do
       "echo ECS_CLUSTER=", Ref('ECSCluster'), " >> /etc/ecs/ecs.config\n",
       "echo ECS_INSTANCE_ATTRIBUTES='{\"BuildGroup\": \"master\"}' >> /etc/ecs/ecs.config\n",
       "yum update -y\n",
-      "yum install -y python-pip awslogs chrony nfs-utils\n",
+      "yum install -y python-pip awslogs nfs-utils\n",
       "python-pip install --upgrade awscli\n",
       "curl https://amazon-ssm-", Ref("AWS::Region"),".s3.amazonaws.com/latest/linux_amd64/amazon-ssm-agent.rpm -o /tmp/amazon-ssm-agent.rpm\n",
       "yum install -y /tmp/amazon-ssm-agent.rpm\n",
