@@ -8,9 +8,11 @@ CloudFormation do
   version = external_parameters.fetch(:version)
   account_maps = external_parameters[:account_maps]
   app_settings = external_parameters[:app_settings]
-  subnets = external_parameters[:subnets][:static]
+  region = external_parameters['region']
+  subnets = external_parameters[:subnets][region]
 
-  default_tags =  render_aws_tags(external_parameters[:default_tags])
+  static_subnets = subnets.select { |name,h| h[:static] }
+  default_tags = render_aws_tags(external_parameters[:default_tags])
 
   subnet_list = []
   availability_zones.each { |zone| subnet_list << Ref("PrivateSubnet#{zone}") }
@@ -44,28 +46,47 @@ CloudFormation do
     Parameter("SubnetPublic#{az}") { Type 'String' }
   end
 
-  availability_zones.each_with_index do |zone, index|
-    Resource("PrivateSubnet#{zone}") {
-      Type 'AWS::EC2::Subnet'
-      Property('VpcId', Ref('VPC'))
-      Property('CidrBlock', FnSub("${CIDRPrefix}.#{subnets[index]}.0/${SubnetMask}"))
-      Property('AvailabilityZone', FnSelect(index, FnGetAZs(Ref('AWS::Region')) ))
-      Property('Tags',add_new_name_to_tags(default_tags, FnSub("${MasterStackName}-${Environment}-build-private#{zone}")))
-    }
-  end
+  static_subnets.each do |name, subnet_config|
+    subnet_config[:subnets].each_with_index do |(zone, cidr), index|
+      Resource("#{name}Subnet#{zone}") do
+        Type 'AWS::EC2::Subnet'
+        Property('VpcId', Ref('VPC'))
+        Property('CidrBlock', FnSub("${CIDRPrefix}.#{cidr}.0/${SubnetMask}"))
+        # Property('AvailabilityZone', FnSelect(index, FnGetAZs(Ref('AWS::Region')) ))
+        Property('AvailabilityZone', "#{region}#{zone.downcase}")
+        Property('Tags',add_new_name_to_tags(default_tags, FnSub("${MasterStackName}-${Environment}-#{name}Subnet#{zone}")))
+      end
 
-  availability_zones.each do |az|
-    Resource("SubnetRouteTableAssociationPrivate#{az}") {
-      Type 'AWS::EC2::SubnetRouteTableAssociation'
-      Property('SubnetId', Ref("PrivateSubnet#{az}"))
-      Property('RouteTableId', Ref("RouteTablePrivate#{az}"))
-    }
-  end
+      Resource("#{name}SubnetRouteTableAssociationPrivate#{zone}") do
+        Type 'AWS::EC2::SubnetRouteTableAssociation'
+        Property('SubnetId', Ref("#{name}Subnet#{zone}"))
+        Property('RouteTableId', Ref("RouteTablePrivate#{zone}"))
+      end
 
-  availability_zones.each do |zone|
-    Output("PrivateSubnet#{zone}") {
-      Value Ref("PrivateSubnet#{zone}")
-    }
+      Output("#{name}Subnet#{zone}") do
+        Value Ref("#{name}Subnet#{zone}")
+      end
+    end
   end
-
 end
+
+# :subnets:
+#   region:
+#     Private:
+#       :static: true
+#       :subnets:
+#         A: 3
+#         B: 4
+#         C: 5
+#     Rds:
+#       :static: true
+#       :subnets:
+#         A: 12
+#         B: 13
+#         C: 14
+#     Test:
+#       :static: false
+#       :subnets:
+#         A: 15
+#         B: 16
+#         C: 17
