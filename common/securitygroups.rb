@@ -52,7 +52,7 @@ CloudFormation {
     Resource(securitygroup) {
       Type 'AWS::EC2::SecurityGroup'
       Property('VpcId', Ref('VPC'))
-      Property('GroupName', "${MasterStackName}-#{securitygroup}")
+      Property('GroupName', FnSub("${MasterStackName}-#{securitygroup}"))
       Property('GroupDescription', details[:description])
       Property('SecurityGroupIngress', ingress_rules)
       Property('SecurityGroupEgress', egress_rules)
