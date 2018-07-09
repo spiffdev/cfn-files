@@ -101,9 +101,9 @@ CloudFormation do
       "chkconfig chronyd on || true\n",
       "sudo service chronyd start || true\n",
       "export DNS_NAME=", FnJoin('', [ FnFindInMap('AccountSettings', Ref('AWS::AccountId'),'PrivateDNSDomain'), '.']), "\n",
-      "export LOCAL_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`\n",
+      "export LOCAL_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`\n",
       "export ZONE=`aws route53 list-hosted-zones | jq --arg dns_name ${DNS_NAME} -r '.HostedZones[] |   select(.Name == $dns_name and .Config.PrivateZone == true) | .Id | ltrimstr(\"/hostedzone/\")'`\n",
-      "/usr/local/bin/cli53 rrcreate $ZONE jenkins A $LOCAL_IP --replace --ttl 60"
+      "/usr/local/bin/cli53 rrcreate --create ${ZONE} \"jenkins-internal 60 A ${LOCAL_IP}\"\n"
     ]))
   }
 
