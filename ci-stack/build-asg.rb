@@ -71,10 +71,12 @@ CloudFormation do
       "echo ECS_CLUSTER=", Ref('ECSCluster'), " >> /etc/ecs/ecs.config\n",
       "echo ECS_INSTANCE_ATTRIBUTES='{\"BuildGroup\": \"master\"}' >> /etc/ecs/ecs.config\n",
       "yum update -y\n",
-      "yum install -y python-pip awslogs nfs-utils\n",
+      "yum install -y python-pip awslogs nfs-utils jq\n",
       "python-pip install --upgrade awscli\n",
       "curl https://amazon-ssm-", Ref("AWS::Region"),".s3.amazonaws.com/latest/linux_amd64/amazon-ssm-agent.rpm -o /tmp/amazon-ssm-agent.rpm\n",
       "yum install -y /tmp/amazon-ssm-agent.rpm\n",
+      "curl -L https://github.com/barnybug/cli53/releases/download/0.8.12/cli53-linux-amd64 -o /usr/local/bin/cli53\n",
+      "chmod a+x /usr/local/bin/cli53\n",
       "FILE_SYSTEM_ID=", Ref('BuildStorageFS'), "\n",
       "REGION=", Ref('AWS::Region'), "\n",
       "MOUNT_POINT=/mnt/efs\n",
@@ -98,6 +100,10 @@ CloudFormation do
       "sleep 10\n",
       "chkconfig chronyd on || true\n",
       "sudo service chronyd start || true\n",
+      "export DNS_NAME=", FnJoin('', [ FnFindInMap('AccountSettings', Ref('AWS::AccountId'),'PrivateDNSDomain'), '.'])), "\n",
+      "export LOCAL_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`\n",
+      "export ZONE=`aws route53 list-hosted-zones | jq --arg dns_name ${DNS_NAME} -r '.HostedZones[] |   select(.Name == $dns_name and .Config.PrivateZone == true) | .Id | ltrimstr(\"/hostedzone/\")'`",
+      "/usr/local/bin/cli53 rrcreate $ZONE jenkins A $LOCAL_IP --replace --ttl 60"
     ]))
   }
 
