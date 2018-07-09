@@ -38,7 +38,7 @@ CloudFormation {
     Memory: 1500,
     Cpu: 300,
     Image: FnJoin('', [Ref('Image'), ':', Ref('Tag')]),
-    PortMappings: [{ ContainerPort: 8080 }],
+    PortMappings: [{ ContainerPort: 8080, HostPort: 8080 }, { ContainerPort: 50000, HostPort: 50000 }],
     Environment: [{ Name: 'JAVA_OPTS', Value: "-Xmx1024m -Duser.timezone=#{timezone}" }],
     Essential: true,
     MountPoints: [{ ContainerPath: '/etc/localtime', SourceVolume: 'timezone', ReadOnly: true },
@@ -63,7 +63,7 @@ CloudFormation {
     Property('ServiceName', FnSub('${MasterStackName}-jenkins-master'))
     Property('Cluster', Ref('ECSCluster'))
     Property('DesiredCount', 1)
-    Property('DeploymentConfiguration', MinimumHealthyPercent: 0, MaximumPercent: 200)
+    Property('DeploymentConfiguration', MinimumHealthyPercent: 0, MaximumPercent: 100)
     Property('Role', Ref('EcsServiceRoleForTasks'))
     Property('TaskDefinition', Ref('JenkinsMasterTaskDef'))
     Property('LoadBalancers', [{ ContainerName: FnSub('${MasterStackName}-jenkins-master'),
@@ -91,6 +91,8 @@ CloudFormation {
     Property('Protocol', 'HTTP')
     Property('VpcId', Ref('VPC'))
     Property('HealthCheckPath', '/login')
+    Property('HealthCheckPort', 8080)
+    Property('TargetGroupAttributes', [{Key: "deregistration_delay.timeout_seconds", Value: "20"}])
   end
 
   Resource('ELBRecordSet') do
