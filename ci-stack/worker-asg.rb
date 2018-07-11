@@ -80,6 +80,8 @@ CloudFormation {
       "curl https://amazon-ssm-ap-southeast-2.s3.amazonaws.com/latest/linux_amd64/amazon-ssm-agent.rpm -o /tmp/amazon-ssm-agent.rpm\n",
       "python-pip install --upgrade awscli\n",
       "yum install -y /tmp/amazon-ssm-agent.rpm\n",
+      "curl -L https://github.com/barnybug/cli53/releases/download/0.8.12/cli53-linux-amd64 -o /usr/local/bin/cli53\n",
+      "chmod a+x /usr/local/bin/cli53\n",
       "$(/usr/local/bin/aws ecr get-login --no-include-email --region ap-southeast-2)\n",
       "groupadd -g 1000 jenkins\n",
       "useradd -u 1000 -g 1000 -G docker jenkins\n",
@@ -97,6 +99,10 @@ CloudFormation {
       "sleep 10\n",
       "chkconfig chronyd on || true\n",
       "sudo service chronyd start || true\n",
+      "export DNS_NAME=", FnJoin('', [ FnFindInMap('AccountSettings', Ref('AWS::AccountId'),'PrivateDNSDomain'), '.']), "\n",
+      "export LOCAL_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`\n",
+      "export ZONE=`aws route53 list-hosted-zones | jq --arg dns_name ${DNS_NAME} -r '.HostedZones[] |   select(.Name == $dns_name and .Config.PrivateZone == true) | .Id | ltrimstr(\"/hostedzone/\")'`\n",
+      "/usr/local/bin/cli53 rrcreate --replace ${ZONE} \"jenkins-worker 60 A ${LOCAL_IP}\"\n"
     ]))
   }
 
