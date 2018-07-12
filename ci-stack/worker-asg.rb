@@ -107,6 +107,7 @@ CloudFormation {
   }
 
   AutoScalingGroup('BuildAutoScaleGroup') {
+    AutoScalingGroupName FnSub('${MasterStackName}-spot-worker-asg')
     UpdatePolicy('AutoScalingRollingUpdate', {
       MinInstancesInService: '0',
       MaxBatchSize: '1',
