@@ -108,7 +108,7 @@ CloudFormation do
   }
 
   AutoScalingGroup('BuildAutoScaleGroup') {
-    AutoScalingGroupName FnSub('${MasterStackName}-build-asg')
+    Property('AutoScalingGroupName', FnSub('${MasterStackName}-build-asg'))
     UpdatePolicy('AutoScalingRollingUpdate', {
       'MinInstancesInService' => '0',
       'MaxBatchSize'          => '1',
