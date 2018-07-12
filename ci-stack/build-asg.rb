@@ -141,7 +141,7 @@ CloudFormation do
     Property('MinSize','1')
     Property('MaxSize', '1')
     Property('DesiredCapacity', '1')
-    Property('Recurrence', '0 20 * * 0-4')
+    Property('Recurrence', '10 20 * * 0-4')
   }
 
   Resource('ScheduledActionDown') {
