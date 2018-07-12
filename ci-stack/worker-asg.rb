@@ -131,39 +131,6 @@ CloudFormation {
     }])
     VPCZoneIdentifier subnet_list
     Property('Tags', asg_default_tags)
-    LoadBalancerNames [ Ref('ElasticLoadBalancer') ]
-  }
-
-  Resource('ElasticLoadBalancer') {
-    Type 'AWS::ElasticLoadBalancing::LoadBalancer'
-    Property('Scheme', 'internal')
-    Property('Listeners', [{ LoadBalancerPort: '2222', InstancePort: '22', Protocol: 'TCP' }])
-    Property('HealthCheck', {
-      Target: 'TCP:22',
-      HealthyThreshold: '3',
-      UnhealthyThreshold: '2',
-      Interval: '15',
-      Timeout: '5'
-    })
-    Property('ConnectionDrainingPolicy', Enabled: 'true', Timeout: '60')
-    Property('CrossZone',true)
-    Property('SecurityGroups', [Ref('SecurityGroupWorkers')])
-    Property('AccessLoggingPolicy', {
-      Enabled: 'true',
-      EmitInterval: '5',
-      S3BucketName: FnImportValue('account-S3ELBAccessLogsBucket'),
-      S3BucketPrefix: 'Logs/AWSLogs/JenkinsMaster'
-    })
-    Property('Subnets', private_subnets)
-    Property('LoadBalancerName', FnSub('${Environment}-workers'))
-  }
-
-  Resource('LoadBalancerRecord') {
-    Type 'AWS::Route53::RecordSet'
-    Property('HostedZoneName', FnJoin('', [ FnFindInMap('AccountSettings', Ref('AWS::AccountId'),'PrivateDNSDomain'), '.']))
-    Property('Name', FnJoin('', ['spotworker.', FnFindInMap('AccountSettings', Ref('AWS::AccountId'),'PrivateDNSDomain'), '.']))
-    Property('Type','A')
-    Property('AliasTarget', DNSName: FnGetAtt('ElasticLoadBalancer','DNSName'), HostedZoneId: FnGetAtt('ElasticLoadBalancer','CanonicalHostedZoneNameID'))
   }
 
   Resource('ScheduledActionUp') {
