@@ -100,6 +100,11 @@ CloudFormation do
     Condition 'LoadBalancer'
     Value FnGetAtt('EcsElasticLoadBalancerForECS', 'CanonicalHostedZoneID')
   end
+
+  Output('EcsElasticLoadBalancer') {
+    Condition 'LoadBalancer'
+    Value Ref('EcsElasticLoadBalancerForECS')
+  }
 end
 
 # :subnets:
