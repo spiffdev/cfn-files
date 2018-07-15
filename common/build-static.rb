@@ -46,6 +46,14 @@ CloudFormation do
     Parameter("SubnetPublic#{az}") { Type 'String' }
   end
 
+  Parameter('LoadBalancer') {
+    Type 'String'
+    AllowedValues ['on', 'off']
+    Default 'on'
+  }
+
+  Condition('LoadBalancer', FnEquals(Ref('LoadBalancer'), 'on'))
+
   static_subnets.each do |name, subnet_config|
     subnet_config[:subnets].each_with_index do |(zone, cidr), index|
       Resource("#{name}Subnet#{zone}") do
@@ -67,6 +75,30 @@ CloudFormation do
         Value Ref("#{name}Subnet#{zone}")
       end
     end
+  end
+
+  Resource('EcsElasticLoadBalancerForECS') do
+    Condition 'LoadBalancer'
+    Type 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Property('Subnets', public_subnets)
+    Property('SecurityGroups', [Ref('SecurityGroupWeb')])
+    Property('LoadBalancerAttributes', [
+      { Key: 'access_logs.s3.enabled', Value: true },
+      { Key: 'access_logs.s3.bucket',  Value: FnImportValue('account-S3ELBAccessLogsBucket') },
+      { Key: 'access_logs.s3.prefix', Value: 'Logs/AWSLogs/JenkinsMaster' },
+      { Key: 'idle_timeout.timeout_seconds', Value: 60}
+    ])
+    Property('Tags', add_new_name_to_tags(default_tags, FnSub('${MasterStackName}-${Environment}-application-loadbalancer')))
+  end
+
+  Output('DNSName') do
+    Condition 'LoadBalancer'
+    Value FnGetAtt('EcsElasticLoadBalancerForECS', 'DNSName')
+  end
+
+  Output('ZoneId') do
+    Condition 'LoadBalancer'
+    Value FnGetAtt('EcsElasticLoadBalancerForECS', 'CanonicalHostedZoneID')
   end
 end
 
