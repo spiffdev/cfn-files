@@ -12,7 +12,7 @@ CloudFormation do
   default_tags =  render_aws_tags(external_parameters[:default_tags])
 
   asg_default_tags = [
-    {Key: 'Name', Value: FnSub("${MasterStackName}-build-app-asg"), PropagateAtLaunch: true},
+    {Key: 'Name', Value: FnSub("${MasterStackName}-app-asg"), PropagateAtLaunch: true},
     {Key: 'Stack', Value: Ref('MasterStackName'), PropagateAtLaunch: true},
     {Key: 'Environment', Value: Ref('Environment'), PropagateAtLaunch: true},
   ]
@@ -21,8 +21,8 @@ CloudFormation do
   availability_zones.each { |zone| subnet_list << Ref("PrivateSubnet#{zone}") }
 
   Metadata(
-    Template: 'build-asg',
-    Description: 'This template sets up the asg and related things for running build containers including jenkins',
+    Template: 'app-asg',
+    Description: 'This template sets up the asg and related things for running app containers including jenkins',
     Project: project,
     Application: application_name,
     Version: version
@@ -58,17 +58,17 @@ CloudFormation do
   }
 
   LaunchConfiguration(:LaunchConfig) {
-    ImageId FnFindInMap('AppSettings', Ref('Environment'), 'BuildInstanceImageId')
+    ImageId FnFindInMap('AppSettings', Ref('Environment'), 'AppInstanceImageId')
     IamInstanceProfile Ref('InstanceProfile')
     KeyName FnFindInMap('AccountSettings', Ref('AWS::AccountId'), 'Ec2KeyPair')
     SecurityGroups [ Ref('SecurityGroupAppInstance')]
-    InstanceType FnFindInMap('AppSettings', Ref('Environment'), 'BuildInstanceType')
+    InstanceType FnFindInMap('AppSettings', Ref('Environment'), 'AppInstanceType')
     Property('BlockDeviceMappings', [{ DeviceName: '/dev/xvda', Ebs: { VolumeSize: 30 } },
                                      { DeviceName: '/dev/xvdcz', Ebs: { VolumeSize: 50, VolumeType: 'gp2' } }])
     UserData FnBase64(FnJoin('', [
       "#!/bin/bash\n",
       "echo ECS_CLUSTER=", Ref('ECSCluster'), " >> /etc/ecs/ecs.config\n",
-      "echo ECS_INSTANCE_ATTRIBUTES='{\"BuildGroup\": \"worker\"}' >> /etc/ecs/ecs.config\n",
+      "echo ECS_INSTANCE_ATTRIBUTES='{\"AppGroup\": \"worker\"}' >> /etc/ecs/ecs.config\n",
       "stop ecs\n",
       "start ecs\n",
       "yum update -y \n",
@@ -87,7 +87,7 @@ CloudFormation do
   ]))
 }
 
-  AutoScalingGroup('BuildAutoScaleGroup') {
+  AutoScalingGroup('AppAutoScaleGroup') {
     UpdatePolicy('AutoScalingRollingUpdate', {
       'MinInstancesInService' => '0',
       'MaxBatchSize'          => '1',
@@ -117,7 +117,7 @@ CloudFormation do
   Resource("ScheduledActionUp") {
     Condition 'AsgSchedules'
     Type 'AWS::AutoScaling::ScheduledAction'
-    Property('AutoScalingGroupName', Ref('BuildAutoScaleGroup'))
+    Property('AutoScalingGroupName', Ref('AppAutoScaleGroup'))
     Property('MinSize','1')
     Property('MaxSize', '1')
     Property('DesiredCapacity', '1')
@@ -127,7 +127,7 @@ CloudFormation do
   Resource("ScheduledActionDown") {
     Condition 'AsgSchedules'
     Type 'AWS::AutoScaling::ScheduledAction'
-    Property('AutoScalingGroupName', Ref('BuildAutoScaleGroup'))
+    Property('AutoScalingGroupName', Ref('AppAutoScaleGroup'))
     Property('MinSize','0')
     Property('MaxSize', '0')
     Property('DesiredCapacity', '0')

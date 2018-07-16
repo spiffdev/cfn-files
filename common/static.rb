@@ -24,7 +24,7 @@ CloudFormation do
   end
 
   Metadata(
-    Template: 'build-static',
+    Template: 'static',
     Description: 'This template sets up static things so that as other stacks may depend on the outputs',
     Project: project,
     Application: application_name,
