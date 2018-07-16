@@ -65,25 +65,27 @@ CloudFormation do
     InstanceType FnFindInMap('AppSettings', Ref('Environment'), 'BuildInstanceType')
     Property('BlockDeviceMappings', [{ DeviceName: '/dev/xvda', Ebs: { VolumeSize: 30 } },
                                      { DeviceName: '/dev/xvdcz', Ebs: { VolumeSize: 50, VolumeType: 'gp2' } }])
-    UserData FnBase64(FnJoin('',[
+    UserData FnBase64(FnJoin('', [
       "#!/bin/bash\n",
       "echo ECS_CLUSTER=", Ref('ECSCluster'), " >> /etc/ecs/ecs.config\n",
-      "echo ECS_INSTANCE_ATTRIBUTES='{\"DeployGroup\": \"normal\"}' >> /etc/ecs/ecs.config\n",
+      "echo ECS_INSTANCE_ATTRIBUTES='{\"BuildGroup\": \"worker\"}' >> /etc/ecs/ecs.config\n",
       "stop ecs\n",
       "start ecs\n",
-      "curl https://amazon-ssm-", Ref("AWS::Region"),".s3.amazonaws.com/latest/linux_amd64/amazon-ssm-agent.rpm -o /tmp/amazon-ssm-agent.rpm\n",
+      "yum update -y \n",
+      "sleep 30\n",
+      "yum install -y git python-pip jq awslogs \n",
+      "curl https://amazon-ssm-ap-southeast-2.s3.amazonaws.com/latest/linux_amd64/amazon-ssm-agent.rpm -o /tmp/amazon-ssm-agent.rpm\n",
+      "python-pip install --upgrade awscli\n",
       "yum install -y /tmp/amazon-ssm-agent.rpm\n",
-      "yum install -y awslogs\n",
+      "$(/usr/local/bin/aws ecr get-login --no-include-email --region ap-southeast-2)\n",
       "yum -y erase ntp || true\n",
       "sleep 10\n",
       "sudo yum -y install chrony\n",
       "sleep 10\n",
       "chkconfig chronyd on || true\n",
-      "sudo service chronyd start || true\n",
-      "cat /var/log/ecs/ecs-agent.log\n",
-      "cat /var/log/ecs/ecs-init.log.*"
-    ]))
-  }
+      "sudo service chronyd start || true\n"
+  ]))
+}
 
   AutoScalingGroup('BuildAutoScaleGroup') {
     UpdatePolicy('AutoScalingRollingUpdate', {
