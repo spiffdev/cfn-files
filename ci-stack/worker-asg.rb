@@ -82,7 +82,7 @@ CloudFormation {
       "yum install -y /tmp/amazon-ssm-agent.rpm\n",
       "curl -L https://github.com/barnybug/cli53/releases/download/0.8.12/cli53-linux-amd64 -o /usr/local/bin/cli53\n",
       "chmod a+x /usr/local/bin/cli53\n",
-      "gem install aws-sdk pp\n",
+      "gem install --no-rdoc --no-ri aws-sdk pp\n",
       "$(/usr/local/bin/aws ecr get-login --no-include-email --region ap-southeast-2)\n",
       "groupadd -g 1000 jenkins\n",
       "useradd -u 1000 -g 1000 -G docker jenkins\n",
