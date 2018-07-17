@@ -41,6 +41,14 @@ CloudFormation {
     PortMappings: [{ ContainerPort: 8080, HostPort: 8080 }, { ContainerPort: 50000, HostPort: 50000 }],
     Environment: [{ Name: 'JAVA_OPTS', Value: "-Xmx1024m -Duser.timezone=#{timezone}" }],
     Essential: true,
+    LogConfiguration: {
+      LogDriver: 'awslogs',
+      Options: {
+          'awslogs-group' => Ref('MasterStackName'),
+          'awslogs-region' => Ref('AWS::Region'),
+          'awslogs-stream-prefix' => 'web'
+      }
+    },
     MountPoints: [{ ContainerPath: '/etc/localtime', SourceVolume: 'timezone', ReadOnly: true },
                   { ContainerPath: '/var/jenkins_home', SourceVolume: 'jenkins_home', ReadOnly: false }]
   }
