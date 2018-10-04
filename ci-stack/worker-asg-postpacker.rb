@@ -60,7 +60,7 @@ CloudFormation {
   }
 
   LaunchConfiguration( :LaunchConfig ) {
-    ImageId FnFindInMap('AppSettings', Ref('Environment'), 'BuildInstanceImageId')
+    ImageId FnFindInMap('AppSettings', Ref('Environment'), 'WorkerInstanceImageId')
     IamInstanceProfile Ref('InstanceProfile')
     KeyName FnFindInMap('AccountSettings', Ref('AWS::AccountId'), 'Ec2KeyPair')
     SecurityGroups [Ref('SecurityGroupAppInstance')]
