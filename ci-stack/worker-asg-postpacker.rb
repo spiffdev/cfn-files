@@ -78,6 +78,7 @@ CloudFormation {
       "cat >> /home/jenkins/.ssh/authorized_keys << EOF\n",
       "#{git_public_key}\n",
       "EOF\n",
+      "service opensshd start\n",
       "export DNS_NAME=", FnJoin('', [ FnFindInMap('AccountSettings', Ref('AWS::AccountId'),'PrivateDNSDomain'), '.']), "\n",
       "export LOCAL_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`\n",
       "export ZONE=`aws route53 list-hosted-zones | jq --arg dns_name ${DNS_NAME} -r '.HostedZones[] |   select(.Name == $dns_name and .Config.PrivateZone == true) | .Id | ltrimstr(\"/hostedzone/\")'`\n",
