@@ -70,15 +70,16 @@ CloudFormation {
                                      { DeviceName: '/dev/xvdcz', Ebs: { VolumeSize: 50, VolumeType: 'gp2' } }])
     UserData FnBase64(FnJoin('', [
       "#!/bin/bash\n",
+      "stop ecs\n",
       "echo ECS_CLUSTER=", Ref('ECSCluster'), " >> /etc/ecs/ecs.config\n",
       "echo ECS_INSTANCE_ATTRIBUTES='{\"BuildGroup\": \"worker\"}' >> /etc/ecs/ecs.config\n",
-      "stop ecs\n",
+      "sleep 30\n",
       "start ecs\n",
       "$(/usr/local/bin/aws ecr get-login --no-include-email --region ap-southeast-2)\n",
       "cat >> /home/jenkins/.ssh/authorized_keys << EOF\n",
       "#{git_public_key}\n",
       "EOF\n",
-      "service opensshd start\n",
+      "service sshd start\n",
       "export DNS_NAME=", FnJoin('', [ FnFindInMap('AccountSettings', Ref('AWS::AccountId'),'PrivateDNSDomain'), '.']), "\n",
       "export LOCAL_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`\n",
       "export ZONE=`aws route53 list-hosted-zones | jq --arg dns_name ${DNS_NAME} -r '.HostedZones[] |   select(.Name == $dns_name and .Config.PrivateZone == true) | .Id | ltrimstr(\"/hostedzone/\")'`\n",

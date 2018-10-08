@@ -68,6 +68,8 @@ CloudFormation do
                                      { DeviceName: '/dev/xvdcz', Ebs: { VolumeSize: 50, VolumeType: 'gp2' } }])
     UserData FnBase64(FnJoin('', [
       "#!/bin/bash\n",
+      "stop ecs\n",
+      "service docker stop\n",
       "echo ECS_CLUSTER=", Ref('ECSCluster'), " >> /etc/ecs/ecs.config\n",
       "echo ECS_INSTANCE_ATTRIBUTES='{\"BuildGroup\": \"master\"}' >> /etc/ecs/ecs.config\n",
       "FILE_SYSTEM_ID=", Ref('BuildStorageFS'), "\n",
@@ -80,12 +82,7 @@ CloudFormation do
       "df -t\n",
       "mkdir -p /mnt/efs/data \n",
       "mkdir -p /mnt/efs/data/jenkins; chown -R 1000:1000 /mnt/efs/data/jenkins\n",
-      "stop ecs\n",
-      "service docker stop\n",
       "service docker start\n",
-      #"start ecs\n",
-      "stop amazon-ssm-agent\n",
-      "start amazon-ssm-agent\n",
       "$(/usr/local/bin/aws ecr get-login --no-include-email --region ", Ref("AWS::Region") ,")\n",
       "sleep 30\n",
       "start ecs\n",
