@@ -134,4 +134,58 @@ CloudFormation do
     Property('Recurrence', '0 10 * * *')
   }
 
+  Resource("ScaleUpPolicy") {
+    Type 'AWS::AutoScaling::ScalingPolicy'
+    Property('AdjustmentType', 'ChangeInCapacity')
+    Property('AutoScalingGroupName', Ref('BuildAutoScaleGroup'))
+    Property('Cooldown','300')
+    Property('ScalingAdjustment', '1')
+  }
+
+  Resource("ScaleDownPolicy") {
+    Type 'AWS::AutoScaling::ScalingPolicy'
+    Property('AdjustmentType', 'ChangeInCapacity')
+    Property('AutoScalingGroupName', Ref('BuildAutoScaleGroup'))
+    Property('Cooldown','300')
+    Property('ScalingAdjustment', '-1')
+  }
+
+  Resource("CPUAlarmHigh") {
+    Type 'AWS::CloudWatch::Alarm'
+    Property('AlarmDescription', 'Scale-up if CPU > 60% for 2 minutes')
+    Property('MetricName','CPUUtilization')
+    Property('Namespace','AWS/EC2')
+    Property('Statistic', 'Average')
+    Property('Period', '60')
+    Property('EvaluationPeriods', '2')
+    Property('Threshold', '60')
+    Property('AlarmActions', [ Ref('ScaleUpPolicy') ])
+    Property('Dimensions', [
+      {
+        'Name' => 'AutoScalingGroupName',
+        'Value' => Ref('BuildAutoScaleGroup')
+      }
+    ])
+    Property('ComparisonOperator', 'GreaterThanThreshold')
+  }
+
+  Resource("CPUAlarmLow") {
+    Type 'AWS::CloudWatch::Alarm'
+    Property('AlarmDescription', 'Scale-up if CPU < 40% for 4 minutes')
+    Property('MetricName','CPUUtilization')
+    Property('Namespace','AWS/EC2')
+    Property('Statistic', 'Average')
+    Property('Period', '60')
+    Property('EvaluationPeriods', '4')
+    Property('Threshold', '30')
+    Property('AlarmActions', [ Ref('ScaleDownPolicy') ])
+    Property('Dimensions', [
+      {
+        'Name' => 'AutoScalingGroupName',
+        'Value' => Ref('BuildAutoScaleGroup')
+      }
+    ])
+    Property('ComparisonOperator', 'LessThanThreshold')
+  }
+
 end
