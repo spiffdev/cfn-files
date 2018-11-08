@@ -137,7 +137,7 @@ CloudFormation do
   Resource("ScaleUpPolicy") {
     Type 'AWS::AutoScaling::ScalingPolicy'
     Property('AdjustmentType', 'ChangeInCapacity')
-    Property('AutoScalingGroupName', Ref('BuildAutoScaleGroup'))
+    Property('AutoScalingGroupName', Ref('AppAutoScaleGroup'))
     Property('Cooldown','300')
     Property('ScalingAdjustment', '1')
   }
