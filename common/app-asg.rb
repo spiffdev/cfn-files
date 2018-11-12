@@ -145,7 +145,7 @@ CloudFormation do
   Resource("ScaleDownPolicy") {
     Type 'AWS::AutoScaling::ScalingPolicy'
     Property('AdjustmentType', 'ChangeInCapacity')
-    Property('AutoScalingGroupName', Ref('BuildAutoScaleGroup'))
+    Property('AutoScalingGroupName', Ref('AppAutoScaleGroup'))
     Property('Cooldown','300')
     Property('ScalingAdjustment', '-1')
   }
@@ -163,7 +163,7 @@ CloudFormation do
     Property('Dimensions', [
       {
         'Name' => 'AutoScalingGroupName',
-        'Value' => Ref('BuildAutoScaleGroup')
+        'Value' => Ref('AppAutoScaleGroup')
       }
     ])
     Property('ComparisonOperator', 'GreaterThanThreshold')
@@ -182,7 +182,7 @@ CloudFormation do
     Property('Dimensions', [
       {
         'Name' => 'AutoScalingGroupName',
-        'Value' => Ref('BuildAutoScaleGroup')
+        'Value' => Ref('AppAutoScaleGroup')
       }
     ])
     Property('ComparisonOperator', 'LessThanThreshold')
