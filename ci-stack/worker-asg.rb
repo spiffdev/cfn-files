@@ -103,7 +103,9 @@ CloudFormation {
       "export DNS_NAME=", FnJoin('', [ FnFindInMap('AccountSettings', Ref('AWS::AccountId'),'PrivateDNSDomain'), '.']), "\n",
       "export LOCAL_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`\n",
       "export ZONE=`aws route53 list-hosted-zones | jq --arg dns_name ${DNS_NAME} -r '.HostedZones[] |   select(.Name == $dns_name and .Config.PrivateZone == true) | .Id | ltrimstr(\"/hostedzone/\")'`\n",
-      "/usr/local/bin/cli53 rrcreate --replace ${ZONE} \"jenkins-worker 60 A ${LOCAL_IP}\"\n"
+      "/usr/local/bin/cli53 rrcreate --replace ${ZONE} \"jenkins-worker 60 A ${LOCAL_IP}\"\n",
+      "curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose\n",
+      "chmod +x /usr/local/bin/docker-compose\n"
     ]))
   }
 
